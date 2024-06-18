@@ -9,9 +9,6 @@ import { redirect } from "next/navigation";
 
 //server action
 export async function onFormSubmit(prevState: any, formData: FormData) {
-    "use server";
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    redirect("/");
     return {
         errors: ["wrong password", "password too short"],
     };
