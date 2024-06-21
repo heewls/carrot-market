@@ -27,6 +27,7 @@ model SMSToken {
   updated_at DateTime @updatedAt
   // user를 보이는 방식이 아닌 db에는 userId만 저장
   // SMSToken에 있는 userId가 User model id 참조
-  user       User     @relation(fields: [userId], references: [id])
+  // onDelete Cascade : user 삭제됐을 떄 연결된 모든 SMSToken들도 같이 지워짐
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int
 }
