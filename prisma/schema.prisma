@@ -7,14 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id Int @id @default(autoincrement())
-  username String @unique
-  email String ? @unique
-  password String?
-  phone String? @unique
-  github_id String? @unique
-  avatar String? 
+model User {
+  id         Int        @id @default(autoincrement())
+  username   String     @unique
+  email      String?    @unique
+  password   String?
+  phone      String?    @unique
+  github_id  String?    @unique
+  avatar     String?
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  SMSToken   SMSToken[]
+}
+
+model SMSToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  // user를 보이는 방식이 아닌 db에는 userId만 저장
+  // SMSToken에 있는 userId가 User model id 참조
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
 }
