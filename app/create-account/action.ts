@@ -3,6 +3,10 @@
 import { PASSWORD_MIN_LENGTH, PASSWORD_REGEX, PASSWORD_REGEX_ERROR } from "@/lib/constant";
 import db from "@/lib/db";
 import { z } from "zod";
+import bcrypt from "bcrypt";
+import { getIronSession } from "iron-session";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 const checkUsername = (username: string) => !username.includes("potato");
 const checkPassword = ({ password, confirm_password }: { password: string; confirm_password: string }) =>
@@ -70,5 +74,28 @@ export async function createAccount(prevState: any, formData: FormData) {
     if (!result.success) {
         return result.error.flatten();
     } else {
+        //hash one way only function
+        // 12 : run hash algorithm 12 times
+        const hashedPassword = await bcrypt.hash(result.data.password, 12);
+        const user = await db.user.create({
+            data: {
+                username: result.data.username,
+                email: result.data.email,
+                password: hashedPassword,
+            },
+            select: {
+                id: true,
+            },
+        });
+        const cookie = await getIronSession(cookies(), {
+            cookieName: "carrot",
+            password: process.env.COOKIE_PASSWORD!,
+        });
+        //@ts-ignore
+        cookie.id = user.id;
+        await cookie.save();
+        redirect("/profile");
     }
 }
+
+//session DB 없이 쿠키 받을 수 있게 해주는 라이브러리 : iron session
