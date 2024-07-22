@@ -4,38 +4,12 @@ import { PASSWORD_MIN_LENGTH, PASSWORD_REGEX, PASSWORD_REGEX_ERROR } from "@/lib
 import db from "@/lib/db";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { getIronSession } from "iron-session";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import getSession from "@/lib/session";
 
 const checkUsername = (username: string) => !username.includes("potato");
 const checkPassword = ({ password, confirm_password }: { password: string; confirm_password: string }) =>
     password === confirm_password;
-const checkUniqueUsername = async (username: string) => {
-    const user = await db.user.findUnique({
-        where: {
-            username,
-        },
-        // db에서 user를 찾지만 id만 가져옴
-        select: {
-            id: true,
-        },
-    });
-    //user가 있으면 true user가 null이면 false 이걸 !로 반대 boolean 값으로 변환해서 반환
-    return !Boolean(user);
-};
-const checkUniqueEmail = async (email: string) => {
-    const user = await db.user.findUnique({
-        where: {
-            email,
-        },
-        select: {
-            id: true,
-        },
-    });
-    return !Boolean(user);
-};
 
 const formSchema = z
     .object({
@@ -48,15 +22,50 @@ const formSchema = z
             // transform : 변환된 값 return(return 필수)
             // .transform((username) => `🐈 ${username} 🐈`)
             // refine : validation 성공 여부에 따라 true/false return
-            .refine(checkUsername, "NO POTATO!")
-            .refine(checkUniqueUsername, "This username is already taken"),
-        email: z
-            .string()
-            .email()
-            .toLowerCase()
-            .refine(checkUniqueEmail, "There is an account already registered with that email"),
-        password: z.string().min(PASSWORD_MIN_LENGTH).regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
+            .refine(checkUsername, "NO POTATO!"),
+        email: z.string().email().toLowerCase(),
+        password: z.string().min(PASSWORD_MIN_LENGTH),
+        // .regex(PASSWORD_REGEX, PASSWORD_REGEX_ERROR),
         confirm_password: z.string().min(PASSWORD_MIN_LENGTH),
+    })
+    .superRefine(async ({ username }, ctx) => {
+        const user = await db.user.findUnique({
+            where: {
+                username,
+            },
+            select: {
+                id: true,
+            },
+        });
+        if (user) {
+            ctx.addIssue({
+                code: "custom",
+                message: "This username is already taken",
+                path: ["username"],
+                fatal: true,
+            });
+            // 유효성 검사 실패하면 다른 검사들 미리 중단
+            return z.NEVER;
+        }
+    })
+    .superRefine(async ({ email }, ctx) => {
+        const user = await db.user.findUnique({
+            where: {
+                email,
+            },
+            select: {
+                id: true,
+            },
+        });
+        if (user) {
+            ctx.addIssue({
+                code: "custom",
+                message: "This email is already taken",
+                path: ["email"],
+                fatal: true,
+            });
+            return z.NEVER;
+        }
     })
     .refine(checkPassword, {
         message: "Both password should be the same",
@@ -73,6 +82,7 @@ export async function createAccount(prevState: any, formData: FormData) {
 
     const result = await formSchema.safeParseAsync(data);
     if (!result.success) {
+        console.log(result.error.flatten());
         return result.error.flatten();
     } else {
         //hash one way only function
