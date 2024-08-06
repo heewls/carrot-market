@@ -4,7 +4,7 @@ CREATE TABLE "Product" (
     "title" TEXT NOT NULL,
     "price" REAL NOT NULL,
     "description" TEXT NOT NULL,
-    "phto" TEXT NOT NULL,
+    "photo" TEXT NOT NULL,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" DATETIME NOT NULL,
     "userId" INTEGER NOT NULL,
