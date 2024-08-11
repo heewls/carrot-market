@@ -4,6 +4,7 @@ import Button from "@/components/button";
 import Input from "@/components/input";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
+import { uploadProduct } from "./action";
 
 export default function AddProduct() {
     const [preview, setPreview] = useState("");
@@ -19,7 +20,7 @@ export default function AddProduct() {
     };
     return (
         <div>
-            <form className="flex flex-col gap-5 p-5">
+            <form action={uploadProduct} className="flex flex-col gap-5 p-5">
                 <label
                     htmlFor="photo"
                     className="border-2 aspect-square flex items-center justify-center flex-col text-neutral-300 border-neutral-300 rounded-md border-dashed cursor-pointer bg-center bg-cover"
