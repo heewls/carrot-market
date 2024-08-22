@@ -11,17 +11,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-    //@ts-ignore
-    carrot,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
         <html lang="en">
-            <body className="min-h-screen bg-neutral-900 text-white max-w-screen-sm mx-auto">
-                {carrot}
-                {children}
-            </body>
+            <body className="min-h-screen bg-neutral-900 text-white max-w-screen-sm mx-auto">{children}</body>
         </html>
     );
 }
