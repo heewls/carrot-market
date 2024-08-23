@@ -45,6 +45,8 @@ export default function AddProduct() {
                 <Input name="price" required placeholder="가격" type="text" errors={state?.fieldErrors.price} />
                 <Input
                     name="description"
+                    textarea
+                    height={140}
                     required
                     placeholder="설명"
                     type="text"
