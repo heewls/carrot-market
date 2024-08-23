@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import getSession from "@/lib/session";
-import { formatToWon } from "@/lib/utils";
+import { formatToTImeAgo, formatToWon } from "@/lib/utils";
 import { UserIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,7 +43,7 @@ export default async function ProductDetail({ params }: { params: { id: string }
 
     const isOwner = await getIsOwner(product.userId);
     return (
-        <div className="h-[calc(100vh-84px)] overflow-auto">
+        <div style={{ marginBottom: "84px" }}>
             <div>
                 <div className="relative aspect-square">
                     <Image className="object-cover" fill src={product.photo} alt={product.title} />
@@ -60,9 +60,10 @@ export default async function ProductDetail({ params }: { params: { id: string }
                         <h3>{product.user.username}</h3>
                     </div>
                 </div>
-                <div className="p-5">
-                    <h1 className="text-2xl font-semibold mt-1 mb-2">{product.title}</h1>
-                    <p>{product.description}</p>
+                <div className="p-5 gap-3">
+                    <h1 className="text-2xl">{product.title}</h1>
+                    <span className="text-sm text-neutral-500">{formatToTImeAgo(product.created_at.toString())}</span>
+                    <p className="whitespace-pre-wrap">{product.description}</p>
                 </div>
             </div>
             <div className="fixed w-full bottom-0 left-50 p-5 bg-neutral-800 flex justify-between items-center max-w-screen-sm">
