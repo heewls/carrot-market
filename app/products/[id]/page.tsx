@@ -4,7 +4,7 @@ import { formatToTImeAgo, formatToWon } from "@/lib/utils";
 import { UserIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 async function getIsOwner(userId: number) {
     const session = await getSession();
@@ -42,6 +42,13 @@ export default async function ProductDetail({ params }: { params: { id: string }
     }
 
     const isOwner = await getIsOwner(product.userId);
+
+    const deleteProduct = async () => {
+        "use server";
+        await db.product.delete({ where: { id } });
+        redirect("/home");
+    };
+
     return (
         <div style={{ marginBottom: "84px" }}>
             <div>
@@ -69,9 +76,11 @@ export default async function ProductDetail({ params }: { params: { id: string }
             <div className="fixed w-full bottom-0 left-50 p-5 bg-neutral-800 flex justify-between items-center max-w-screen-sm">
                 <span className="font-semibold text-xl">{formatToWon(product.price)}원</span>
                 {isOwner ? (
-                    <button className="bg-red-500 px-5 py-2.5 rounded-md text-white font-semibold">
-                        Delete product
-                    </button>
+                    <form action={deleteProduct}>
+                        <button className="bg-red-500 px-5 py-2.5 rounded-md text-white font-semibold">
+                            Delete product
+                        </button>
+                    </form>
                 ) : null}
                 <Link className="bg-orange-500 px-5 py-2.5 rounded-md text-white font-semibold" href={``}>
                     채팅하기
