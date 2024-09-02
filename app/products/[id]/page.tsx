@@ -2,6 +2,7 @@ import db from "@/lib/db";
 import getSession from "@/lib/session";
 import { formatToTImeAgo, formatToWon } from "@/lib/utils";
 import { UserIcon } from "@heroicons/react/24/solid";
+import { revalidateTag, unstable_cache } from "next/cache";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -31,8 +32,28 @@ async function getProduct(id: number) {
     return product;
 }
 
+const getCachedProduct = unstable_cache(getProduct, ["product-detail"], {
+    tags: ["product-detail"],
+});
+
+async function getProductTitle(id: number) {
+    const product = await db.product.findUnique({
+        where: {
+            id,
+        },
+        select: {
+            title: true,
+        },
+    });
+    return product;
+}
+
+const getCachedProductTItle = unstable_cache(getProductTitle, ["product-title"], {
+    tags: ["product-title"],
+});
+
 export async function generateMetadata({ params }: { params: { id: string } }) {
-    const product = await getProduct(Number(params.id));
+    const product = await getCachedProductTItle(Number(params.id));
     return {
         title: product?.title,
     };
@@ -43,7 +64,7 @@ export default async function ProductDetail({ params }: { params: { id: string }
     if (isNaN(id)) {
         return notFound();
     }
-    const product = await getProduct(id);
+    const product = await getCachedProduct(id);
     if (!product) {
         return notFound();
     }
@@ -52,8 +73,9 @@ export default async function ProductDetail({ params }: { params: { id: string }
 
     const deleteProduct = async () => {
         "use server";
-        await db.product.delete({ where: { id } });
-        redirect("/home");
+        // await db.product.delete({ where: { id } });
+        // redirect("/home");
+        revalidateTag("product-title");
     };
 
     return (
